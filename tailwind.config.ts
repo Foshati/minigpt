@@ -12,12 +12,6 @@ export default {
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
-  			shiki: {
-  				light: 'var(--shiki-light)',
-  				'light-bg': 'var(--shiki-light-bg)',
-  				dark: 'var(--shiki-dark)',
-  				'dark-bg': 'var(--shiki-dark-bg)'
-  			},
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
@@ -55,7 +49,18 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
+  			},
+  			shiki: {
+  				light: 'var(--shiki-light)',
+  				'light-bg': 'var(--shiki-light-bg)',
+  				dark: 'var(--shiki-dark)',
+  				'dark-bg': 'var(--shiki-dark-bg)'
   			}
+  		},
+  		borderRadius: {
+  			lg: 'var(--radius)',
+  			md: 'calc(var(--radius) - 2px)',
+  			sm: 'calc(var(--radius) - 4px)'
   		},
   		keyframes: {
   			'typing-dot-bounce': {
@@ -69,11 +74,6 @@ export default {
   		},
   		animation: {
   			'typing-dot-bounce': 'typing-dot-bounce 1.25s ease-out infinite'
-  		},
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
   		}
   	}
   },

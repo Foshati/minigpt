@@ -8,7 +8,7 @@ type ChatDemoProps = {
   initialMessages?: UseChatOptions["initialMessages"];
 };
 
-export function MiniGpt(props: ChatDemoProps) {
+export function ChatDemo(props: ChatDemoProps) {
   const {
     messages,
     input,
