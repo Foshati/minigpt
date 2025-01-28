@@ -1,3 +1,4 @@
+// components/ui/chat.tsx
 "use client"
 
 import { forwardRef, useCallback, useState, type ReactElement } from "react"
@@ -134,6 +135,7 @@ export function Chat({
     </ChatContainer>
   )
 }
+
 Chat.displayName = "Chat"
 
 export function ChatMessages({
@@ -210,7 +212,7 @@ export const ChatForm = forwardRef<HTMLFormElement, ChatFormProps>(
   ({ children, handleSubmit, isPending, className }, ref) => {
     const [files, setFiles] = useState<File[] | null>(null)
 
-    const onSubmit = (event: React.FormEvent) => {
+    const onSubmit = useCallback((event: React.FormEvent) => {
       if (isPending) {
         event.preventDefault()
         return
@@ -224,7 +226,7 @@ export const ChatForm = forwardRef<HTMLFormElement, ChatFormProps>(
       const fileList = createFileList(files)
       handleSubmit(event, { experimental_attachments: fileList })
       setFiles(null)
-    }
+    }, [files, handleSubmit, isPending])
 
     return (
       <form ref={ref} onSubmit={onSubmit} className={className}>

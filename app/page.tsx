@@ -1,5 +1,5 @@
-import { ChatDemo } from "@/components/chat-demo";
 
+import { ChatDemo } from "@/components/chat-demo";
 import {
   Card,
   CardContent,
