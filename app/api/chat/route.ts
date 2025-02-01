@@ -9,7 +9,5 @@ export async function POST(req: Request) {
         messages,
     });
 
-    return result.toDataStreamResponse({
-        sendReasoning: true,
-    });
+    return result.toDataStreamResponse();
 }
