@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { ArrowUp, Paperclip, Square } from "lucide-react"
+import { ArrowUp, Paperclip, Square, X } from "lucide-react"
 import { omit } from "remeda"
 
 import { cn } from "@/lib/utils"
@@ -16,6 +16,7 @@ interface MessageInputBaseProps
   submitOnEnter?: boolean
   stop?: () => void
   isGenerating: boolean
+  enableInterrupt?: boolean
 }
 
 interface MessageInputWithoutAttachmentProps extends MessageInputBaseProps {
@@ -39,9 +40,17 @@ export function MessageInput({
   submitOnEnter = true,
   stop,
   isGenerating,
+  enableInterrupt = true,
   ...props
 }: MessageInputProps) {
   const [isDragging, setIsDragging] = useState(false)
+  const [showInterruptPrompt, setShowInterruptPrompt] = useState(false)
+
+  useEffect(() => {
+    if (!isGenerating) {
+      setShowInterruptPrompt(false)
+    }
+  }, [isGenerating])
 
   const addFiles = (files: File[] | null) => {
     if (props.allowAttachments) {
@@ -85,6 +94,18 @@ export function MessageInput({
     const items = event.clipboardData?.items
     if (!items) return
 
+    const text = event.clipboardData.getData("text")
+    if (text && text.length > 500 && props.allowAttachments) {
+      event.preventDefault()
+      const blob = new Blob([text], { type: "text/plain" })
+      const file = new File([blob], "Pasted text", {
+        type: "text/plain",
+        lastModified: Date.now(),
+      })
+      addFiles([file])
+      return
+    }
+
     const files = Array.from(items)
       .map((item) => item.getAsFile())
       .filter((file) => file !== null)
@@ -97,6 +118,21 @@ export function MessageInput({
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (submitOnEnter && event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
+
+      if (isGenerating && stop && enableInterrupt) {
+        if (showInterruptPrompt) {
+          stop()
+          setShowInterruptPrompt(false)
+          event.currentTarget.form?.requestSubmit()
+        } else if (
+          props.value ||
+          (props.allowAttachments && props.files?.length)
+        ) {
+          setShowInterruptPrompt(true)
+          return
+        }
+      }
+
       event.currentTarget.form?.requestSubmit()
     }
 
@@ -122,6 +158,13 @@ export function MessageInput({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
+      {enableInterrupt && (
+        <InterruptPrompt
+          isOpen={showInterruptPrompt}
+          close={() => setShowInterruptPrompt(false)}
+        />
+      )}
+
       <textarea
         aria-label="Write your prompt here"
         placeholder={placeholder}
@@ -129,7 +172,7 @@ export function MessageInput({
         onPaste={onPaste}
         onKeyDown={onKeyDown}
         className={cn(
-          "w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-24 text-sm ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+          "z-10 w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-24 text-sm ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
           showFileList && "pb-16",
           className
         )}
@@ -139,7 +182,7 @@ export function MessageInput({
       />
 
       {props.allowAttachments && (
-        <div className="absolute inset-x-3 bottom-0 overflow-x-scroll py-3">
+        <div className="absolute inset-x-3 bottom-0 z-20 overflow-x-scroll py-3">
           <div className="flex space-x-3">
             <AnimatePresence mode="popLayout">
               {props.files?.map((file) => {
@@ -166,7 +209,7 @@ export function MessageInput({
         </div>
       )}
 
-      <div className="absolute right-3 top-3 flex gap-2">
+      <div className="absolute right-3 top-3 z-20 flex gap-2">
         {props.allowAttachments && (
           <Button
             type="button"
@@ -211,6 +254,43 @@ export function MessageInput({
 }
 MessageInput.displayName = "MessageInput"
 
+interface InterruptPromptProps {
+  isOpen: boolean
+  close: () => void
+}
+
+function InterruptPrompt({ isOpen, close }: InterruptPromptProps) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ top: 0, filter: "blur(5px)" }}
+          animate={{
+            top: -40,
+            filter: "blur(0px)",
+            transition: {
+              type: "spring",
+              filter: { type: "tween" },
+            },
+          }}
+          exit={{ top: 0, filter: "blur(5px)" }}
+          className="absolute left-1/2 flex -translate-x-1/2 overflow-hidden whitespace-nowrap rounded-full border bg-background py-1 text-center text-sm text-muted-foreground"
+        >
+          <span className="ml-2.5">Press Enter again to interrupt</span>
+          <button
+            className="ml-1 mr-2.5 flex items-center"
+            type="button"
+            onClick={close}
+            aria-label="Close"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 interface FileUploadOverlayProps {
   isDragging: boolean
 }
@@ -220,7 +300,7 @@ function FileUploadOverlay({ isDragging }: FileUploadOverlayProps) {
     <AnimatePresence>
       {isDragging && (
         <motion.div
-          className="pointer-events-none absolute inset-0 flex items-center justify-center space-x-2 rounded-xl border border-dashed border-border bg-background text-sm text-muted-foreground"
+          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center space-x-2 rounded-xl border border-dashed border-border bg-background text-sm text-muted-foreground"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

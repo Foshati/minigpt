@@ -1,4 +1,3 @@
-// components/ui/chat.tsx
 "use client"
 
 import { forwardRef, useCallback, useState, type ReactElement } from "react"
@@ -135,7 +134,6 @@ export function Chat({
     </ChatContainer>
   )
 }
-
 Chat.displayName = "Chat"
 
 export function ChatMessages({
@@ -154,16 +152,16 @@ export function ChatMessages({
 
   return (
     <div
-      className="grid overflow-y-auto pb-4 grid-cols-1"
+      className="grid grid-cols-1 overflow-y-auto pb-4"
       ref={containerRef}
       onScroll={handleScroll}
       onTouchStart={handleTouchStart}
     >
-      <div className="[grid-column:1/1] [grid-row:1/1] max-w-full">
+      <div className="max-w-full [grid-column:1/1] [grid-row:1/1]">
         {children}
       </div>
 
-      <div className="flex justify-end items-end [grid-column:1/1] [grid-row:1/1] flex-1">
+      <div className="flex flex-1 items-end justify-end [grid-column:1/1] [grid-row:1/1]">
         {!shouldAutoScroll && (
           <div className="sticky bottom-0 left-0 flex w-full justify-end">
             <Button
@@ -212,12 +210,7 @@ export const ChatForm = forwardRef<HTMLFormElement, ChatFormProps>(
   ({ children, handleSubmit, isPending, className }, ref) => {
     const [files, setFiles] = useState<File[] | null>(null)
 
-    const onSubmit = useCallback((event: React.FormEvent) => {
-      if (isPending) {
-        event.preventDefault()
-        return
-      }
-
+    const onSubmit = (event: React.FormEvent) => {
       if (!files) {
         handleSubmit(event)
         return
@@ -226,7 +219,7 @@ export const ChatForm = forwardRef<HTMLFormElement, ChatFormProps>(
       const fileList = createFileList(files)
       handleSubmit(event, { experimental_attachments: fileList })
       setFiles(null)
-    }, [files, handleSubmit, isPending])
+    }
 
     return (
       <form ref={ref} onSubmit={onSubmit} className={className}>
